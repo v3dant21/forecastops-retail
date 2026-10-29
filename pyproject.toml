@@ -1,0 +1,117 @@
+[project]
+name = "forecastops"
+version = "0.1.0"
+description = "Production-Ready Retail Demand Forecasting & Optimization Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Vedant", email = "vedant@example.com"}
+]
+dependencies = [
+    # Data processing
+    "pandas>=2.3.0",
+    "numpy>=2.0.0",
+    "scipy>=1.10.0",
+    "pyarrow>=14.0.0",
+    "openpyxl>=3.1.0",
+    "requests>=2.31.0",
+    
+    # Machine learning
+    "scikit-learn>=1.5.0",
+    "xgboost>=3.4.0",
+    "lightgbm>=4.7.0",
+    "catboost>=1.2.0",
+    
+    # Deep learning
+    "torch>=2.10.0",
+    
+    # MLOps
+    "optuna>=5.0.0",
+    "mlflow>=3.15.0",
+    
+    # API
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    
+    # Dashboard
+    "streamlit>=1.40.0",
+    "plotly>=6.0.0",
+    
+    # Database
+    "psycopg2-binary>=2.9.9",
+    
+    # Configuration
+    "pyyaml>=6.0.1",
+    
+    # Testing
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    
+    # Code quality
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+download-data = "scripts.download_data:main"
+prepare-data = "scripts.prepare_data:main"
+train = "scripts.train:main"
+tune = "scripts.tune:main"
+evaluate = "scripts.evaluate:main"
+benchmark = "scripts.benchmark:main"
+build-retail-plan = "scripts.build_retail_plan:main"
+import-invoices = "scripts.import_invoices:main"
+
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel>=0.40.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["forecastops*", "scripts*"]
+exclude = ["src*"]
+
+[tool.setuptools.data-files]
+"share/forecastops" = ["sql/schema.sql"]
+
+[tool.setuptools.package-data]
+forecastops = ["data/*.sql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "C4", "C9", "ISC", "PIE", "PL", "PT", "RET", "SIM", "UP", "YTT"]
+ignore = ["PLR", "B008"]  # Skip design guidelines and assert tests
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/test_regressions.py" = ["PLC0415"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+    "slow: slow running tests",
+]

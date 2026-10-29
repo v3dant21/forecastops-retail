@@ -1,0 +1,69 @@
+services:
+  postgres:
+    profiles: ["database"]
+    image: postgres:15
+    container_name: forecastops-db
+    environment:
+      POSTGRES_USER: forecastops
+      POSTGRES_PASSWORD: forecastops
+      POSTGRES_DB: forecastops
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forecastops -d forecastops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forecastops-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://forecastops:forecastops@postgres:5432/forecastops
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./models:/app/models:ro
+      - ./data/features:/app/data/features:ro
+      - ./data/retail:/app/data/retail:ro
+      - ./reports:/app/reports:ro
+    command: uvicorn forecastops.api.main:app --host 0.0.0.0 --port 8000
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forecastops-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - DATABASE_URL=postgresql://forecastops:forecastops@postgres:5432/forecastops
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./models:/app/models:ro
+      - ./data/features:/app/data/features:ro
+      - ./data/retail:/app/data/retail
+      - ./reports:/app/reports
+    command: streamlit run src/forecastops/dashboard/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+
+  mlflow:
+    profiles: ["tracking"]
+    image: python:3.11-slim
+    container_name: forecastops-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlruns
+    command: >
+      sh -c "pip install mlflow && 
+             mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////mlruns/mlflow.db --default-artifact-root /mlruns"
+
+volumes:
+  postgres_data:
+  mlflow_data:
