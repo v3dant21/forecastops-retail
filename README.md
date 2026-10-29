@@ -1,7 +1,6 @@
 # ForecastOps
 
-Retail demand planning using actual historical Walmart M5 sales. There are no
-artificial-data generators or fallback datasets in the application pipeline.
+Retail demand planning using actual retail  sales.
 
 The dashboard answers four questions:
 
